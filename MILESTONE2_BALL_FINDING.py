@@ -8,7 +8,10 @@ import RPi.GPIO as GPIO
 import cv2
 import numpy as np
 import time
+import JUST_DRIVE_SYSTEM
 
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
 
 fovsize = 1 # 1 radian
 fovsamples = 60 #samples in FOV 
@@ -20,61 +23,6 @@ cap = cv2.VideoCapture(0)
 cap.set(3, 320)                     	# Set the width to 320
 cap.set(4, 240)                     	# Set the height to 240
 #cap.rotation = 180
-
-# =============================================================================
-# Drive Setup
-# 
-# =============================================================================
-
-# Enable Motors
-# Motor A
-in1 = 12
-in2 = 18
-# Motor B
-in3 = 13
-in4 = 19
-
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
-
-# Set all the motor control pins to outputs
-GPIO.setup(in1, GPIO.OUT)
-GPIO.setup(in2, GPIO.OUT)
-GPIO.setup(in3, GPIO.OUT)
-GPIO.setup(in4, GPIO.OUT)
-
-PWM0 = GPIO.PWM(in1,1000)
-PWM1 = GPIO.PWM(in2,1000)
-PWM2 = GPIO.PWM(in3,1000)
-PWM3 = GPIO.PWM(in4,1000) 
-
-PWM0.start(0)
-PWM1.start(0)
-PWM2.start(0)
-PWM3.start(0)
-
-def motorspeed0(PWM):
-    PWM0.ChangeDutyCycle(int(PWM*0.8))
-    return PWM0
-
-def motorspeed1(PWM):
-    PWM1.ChangeDutyCycle(int(PWM*0.8))
-    return PWM1
-
-def motorspeed2(PWM):
-    PWM2.ChangeDutyCycle(int(PWM*0.8))
-    return PWM2
-
-def motorspeed3(PWM):
-    PWM3.ChangeDutyCycle(int(PWM*0.8))
-    return PWM3
- 
-W = 12.8310 #cm
-
-# =============================================================================
-# Drive Setup
-# 
-# =============================================================================
 
 #KickerSetup
 kickpin = 7
@@ -185,73 +133,9 @@ def indextorad(index):
     return (((-1*fovsamples/2)+index)*(fovsize/fovsamples))
 
 
-# =============================================================================
-# Motor Stuff
-# =============================================================================
 
-# Setup same as test code
-def Enable_Motor():
-    PWM0.start(0)
-    PWM1.start(0)
-    PWM2.start(0)
-    PWM3.start(0)
 
-def Disable_Motor():
-    PWM0.stop()
-    PWM1.stop()
-    PWM2.stop()
-    PWM3.stop()
 
-def SetTargetVelocities(fdval,angval):
-    left_vel = int((fdval*100) - ((((angval/2)*(180/3.14))*W)/32))
-    right_vel = int((fdval*100) + ((((angval/2)*(180/3.14))*W)/32) + 0.5)
-
-    if left_vel > 100:
-        motorspeed0(100)
-        motorspeed1(0)
-    
-    elif left_vel > 0:
-        motorspeed0(left_vel)
-        motorspeed1(0)
-    
-    elif left_vel < 0:
-        motorspeed0(0)
-        motorspeed1(abs(left_vel))
-
-    elif left_vel < -100:
-        motorspeed0(0)
-        motorspeed1(100)
-
-    else:
-        motorspeed0(0)
-        motorspeed1(0)
-
-    if right_vel > 100:
-        motorspeed2(100)
-        motorspeed3(0)
-    
-    elif right_vel > 0:
-        motorspeed2(right_vel)
-        motorspeed3(0)
-    
-    elif right_vel < 0:
-        motorspeed2(0)
-        motorspeed3(abs(right_vel))
-
-    elif right_vel < -100:
-        motorspeed2(0)
-        motorspeed3(100)
-
-    else:
-        motorspeed2(0)
-        motorspeed3(0)
-
-#def goodbye():
-#GPIO.cleanup()
-    
-# =============================================================================
-# Motor Stuff
-# =============================================================================
         
 def clean():
     GPIO.cleanup()
@@ -263,11 +147,11 @@ def setdrive(dist, rps):
     #    soccerBotSim.KickBall(2)
     if abs(rps)<0.2:
         print(rps)
-        SetTargetVelocities(0.30,rps) #if field less than -1.1 reverse? also look at traveling in a curve to go around
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(0.30,rps) #if field less than -1.1 reverse? also look at traveling in a curve to go around
         #soccerBotSim.SetTargetVelocities(0,0,rps)
     else:
         print(rps)
-        SetTargetVelocities(0,rps)
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(0,rps)
 
 def BallInDribbler():
     if GPIO.input(1):
@@ -276,15 +160,23 @@ def BallInDribbler():
         return False
 
 def KickBall():
-    Disable_Motor()
+    #JUST_DRIVE_SYSTEM.Disable_Motor()
     GPIO.output(kickpin, GPIO.HIGH)
     time.sleep(0.5)
     GPIO.output(kickpin, GPIO.LOW)
-    #Enable_Motor()
+    #JUST_DRIVE_SYSTEM.Enable_Motor()
     clean()
     quit()
 
-def main():
+
+
+
+def main():#DriveSetup):
+	
+#    if DriveSetup == 0:
+        #JUST_DRIVE_SYSTEM.Motor_Setup()
+#        DriveSetup = 1
+
     Data = detect()
     
     #if Data[0] != None:
@@ -309,25 +201,12 @@ def main():
         #objectives = findmax(calcfield(None,None))
         #if abs((indextorad(objectives[0]))) < 0.05:
             #KickBall()
-        motorspeed0(0)
-        motorspeed1(0)
-        motorspeed2(0)
-        motorspeed3(0)
-        time.sleep(1)
-        motorspeed0(0)
-        motorspeed1(20)
-        motorspeed2(0)
-        motorspeed3(20.5)
-        time.sleep(1)
-        motorspeed0(119.5)
-        motorspeed1(0)
-        motorspeed2(120)
-        motorspeed3(0)
-        time.sleep(0.5)
+        JUST_DRIVE_SYSTEM.motorkick()
         objectives=[0,0]
           
     setdrive(0,indextorad(objectives[0]))
-       
+
+#main(0)
     
 #print('startup') 
 try:
@@ -338,10 +217,3 @@ except KeyboardInterrupt:
     clean()
     #print('outoftheloop')
     quit()
-    
-    
-    
-    
-    
-    
-#)
