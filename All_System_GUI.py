@@ -240,7 +240,6 @@ Button_Disable_Motors.grid(row = 4, column = 2, padx=5, pady=5)
 
 
 
-
 def Dribbler_ON():
     Label_Dribbler = Label(tab_Kicker_Dribbler,text = '     Dribbler On     ')
     Label_Dribbler.grid(row = 0,column = 1, padx = 0)
@@ -276,6 +275,23 @@ Label_Kick.grid(row = 1, column = 1,  padx = 0)
 
 Button_Kick = Button(tab_Kicker_Dribbler, text = 'Kick', command = Kicker)
 Button_Kick.grid(row = 3, column = 2, padx=5, pady=5)
+
+
+
+Trig = True
+def Check():
+    if Trig == True: #GPIO.input(1):
+        Label_Laser_Trigged = Label(tab_Kicker_Dribbler, text = 'High')
+        Label_Laser_Trigged.grid(row = 1, column = 3, padx = 5, pady = 5)
+    else:
+        Label_Laser_Trigged = Label(tab_Kicker_Dribbler, text = 'Low')
+        Label_Laser_Trigged.grid(row = 1, column = 3, padx = 5, pady = 5)
+    #tab_Kicker_Dribbler.after(10, Check)
+
+Label_Laser = Label(tab_Kicker_Dribbler, text = 'Trigged State')
+Label_Laser.grid(row = 0, column = 3, padx = 5, pady = 5)
+
+tab_Kicker_Dribbler.after(10, Check)
 
 
 
