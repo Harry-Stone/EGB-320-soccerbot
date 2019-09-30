@@ -146,11 +146,11 @@ def setdrive(dist, rps):
     #if soccerBotSim.BallInDribbler():
     #    soccerBotSim.KickBall(2)
     if abs(rps)<0.2:
-        print(rps)
-        JUST_DRIVE_SYSTEM.SetTargetVelocities(0.30,rps) #if field less than -1.1 reverse? also look at traveling in a curve to go around
+        #print(rps)
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(0.3,rps) #if field less than -1.1 reverse? also look at traveling in a curve to go around
         #soccerBotSim.SetTargetVelocities(0,0,rps)
     else:
-        print(rps)
+        #print(rps)
         JUST_DRIVE_SYSTEM.SetTargetVelocities(0,rps)
 
 def BallInDribbler():
