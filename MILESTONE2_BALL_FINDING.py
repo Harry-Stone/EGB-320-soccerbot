@@ -22,7 +22,6 @@ obswid = (18+20)/100 #cm
 cap = cv2.VideoCapture(0)  		
 cap.set(3, 320)                     	# Set the width to 320
 cap.set(4, 240)                     	# Set the height to 240
-#cap.rotation = 180
 
 #KickerSetup
 kickpin = 7
@@ -72,13 +71,13 @@ def detect():
 
     # Draw a circle around the ball
     if mid != None:
-        #pass
-        cv2.circle(frame, mid, int(round(r)), (0,255,0))
+        pass
+        #cv2.circle(frame, mid, int(round(r)), (0,255,0))
         #cv2.putText(frame, str(d), mid, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255))
         #cv2.putText(frame, str(A), (4,20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255))
     
-    cv2.imshow("cam", frame)
-    cv2.waitKey(1)
+    #cv2.imshow("cam", frame)
+    #cv2.waitKey(1)
     if d != None and A != None:
         res = [d/100, A*3.1415/180]
     else:
@@ -134,20 +133,31 @@ def indextorad(index):
 
 
 
-
-
         
 def clean():
     GPIO.cleanup()
-    
+
+
 def setdrive(dist, rps):
+
+    #Speed1 = 0.3
 
     #soccerBotSim.SetTargetVelocities(dist, 0, rps)
     #if soccerBotSim.BallInDribbler():
     #    soccerBotSim.KickBall(2)
     if abs(rps)<0.2:
         #print(rps)
-        JUST_DRIVE_SYSTEM.SetTargetVelocities(0.3,rps) #if field less than -1.1 reverse? also look at traveling in a curve to go around
+
+        if dist > 0.3:
+            Speed1 = dist
+        elif dist > 0.2:
+            Speed1 = 0.25
+        elif dist > 0.1:
+            Speed1 = 0.2
+        else:
+            Speed1 = 0.3
+        
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(Speed1,rps) #if field less than -1.1 reverse? also look at traveling in a curve to go around
         #soccerBotSim.SetTargetVelocities(0,0,rps)
     else:
         #print(rps)
@@ -160,15 +170,13 @@ def BallInDribbler():
         return False
 
 def KickBall():
-    #JUST_DRIVE_SYSTEM.Disable_Motor()
+    JUST_DRIVE_SYSTEM.Disable_Motor()
     GPIO.output(kickpin, GPIO.HIGH)
     time.sleep(0.5)
     GPIO.output(kickpin, GPIO.LOW)
-    #JUST_DRIVE_SYSTEM.Enable_Motor()
-    clean()
-    quit()
-
-
+    JUST_DRIVE_SYSTEM.Enable_Motor()
+    #clean()
+    #quit()
 
 
 def main():#DriveSetup):
@@ -196,7 +204,7 @@ def main():#DriveSetup):
         #objectives = findmax(calcfield(None,[Data[1]/100,Data[0]*3.14/180]))
         objectives = findmax(calcfield(None,Data))
     else:
-        print('looking for the goal')
+        #print('looking for the goal')
         #objectives = findmax(calcfield(None,Data))
         #objectives = findmax(calcfield(None,None))
         #if abs((indextorad(objectives[0]))) < 0.05:
@@ -204,16 +212,11 @@ def main():#DriveSetup):
         JUST_DRIVE_SYSTEM.motorkick()
         objectives=[0,0]
           
-    setdrive(0,indextorad(objectives[0]))
-
-#main(0)
+    setdrive(Speed,indextorad(objectives[0]))
     
-#print('startup') 
 try:
     while True:
         main()
-        #print('main loop')
 except KeyboardInterrupt:
     clean()
-    #print('outoftheloop')
     quit()
