@@ -71,12 +71,12 @@ def drawBall(vals,frame):
         cv2.putText(frame, "Ball", (mid[0],(mid[1]+40)), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0))
 
 
-def detectObstacles(hsv_frame,frame):
+def detectObstacles(hsv_frame, frame, draw):
     A1 = None
     d1 = None
     x = None
-    high_black = np.array([156,255,95])
-    low_black = np.array([80,0,0])
+    high_black = np.array([85,70,40])
+    low_black = np.array([0,0,0])
 
     img_binary1 = cv2.inRange(hsv_frame.copy(), low_black, high_black)
     img_binary1 = cv2.dilate(img_binary1, None, iterations = 1)
@@ -101,8 +101,23 @@ def detectObstacles(hsv_frame,frame):
         # Sort area by largest to smallest
         Contour_size = sorted(zip(obstacles, contours1), key = lambda x: x[0], reverse = True)
 
-        #print("size",  Contour_size)
-        #print( "length", len(Contour_size))
+        if len(Contour_size) > 2:
+            obstacle3 = Contour_size[2][1]
+            obstacle3_area = cv2.minAreaRect(obstacle3)
+            obstacle3_box = cv2.boxPoints(obstacle3_area)
+            obstacle3_box = np.int0(obstacle3_box)
+            obstacle3_w = abs(obstacle3_box[2] - obstacle3_box[0])
+            obstacle3_x, obstacle3_y = abs(obstacle3_box[0])
+            obstacle3_x2, obstacle3_y2 = obstacle3_w
+            if draw == True:
+                if obstacle3_x2 >=w_min:
+                    drawobstacle3 = cv2.drawContours(frame, [obstacle3_box], 0, (0,255,0),2)
+                    obstacle3_d = (15*300)/obstacle3_x2
+                    obstacle3_A = (((obstacle3_x + (obstacle3_x2/2)) / (320/108)) - 54)
+                    cv2.putText(frame, "D: " + str(obstacle3_d), (4,140), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+                    cv2.putText(frame, "A: " + str(obstacle3_A), (4,125), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+                    cv2.putText(frame, "Obstacle3", (4,110), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+
         if len(Contour_size) > 1:
             obstacle2 = Contour_size[1][1]
             obstacle2_area = cv2.minAreaRect(obstacle2)
@@ -111,13 +126,14 @@ def detectObstacles(hsv_frame,frame):
             obstacle2_w = abs(obstacle2_box[2] - obstacle2_box[0])
             obstacle2_x, obstacle2_y = abs(obstacle2_box[0])
             obstacle2_x2, obstacle2_y2 = obstacle2_w
-            if obstacle2_x2 >=w_min:
-                drawobstacle2 = cv2.drawContours(frame, [obstacle2_box], 0, (0,255,0),2)
-                obstacle2_d = (15*300)/obstacle2_x2
-                obstacle2_A = (((obstacle2_x + (obstacle2_x2/2)) / (320/108)) - 54)
-                cv2.putText(frame, "D: " + str(obstacle2_d), (4,95), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-                cv2.putText(frame, "A: " + str(obstacle2_A), (4,80), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-                cv2.putText(frame, "Obstacle2", (4,65), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+            if draw ==True:
+                if obstacle2_x2 >=w_min:
+                    drawobstacle2 = cv2.drawContours(frame, [obstacle2_box], 0, (0,255,0),2)
+                    obstacle2_d = (15*300)/obstacle2_x2
+                    obstacle2_A = (((obstacle2_x + (obstacle2_x2/2)) / (320/108)) - 54)
+                    cv2.putText(frame, "D: " + str(obstacle2_d), (4,95), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+                    cv2.putText(frame, "A: " + str(obstacle2_A), (4,80), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+                    cv2.putText(frame, "Obstacle2", (4,65), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
        
        
@@ -128,16 +144,31 @@ def detectObstacles(hsv_frame,frame):
         w = abs(box[2] - box[0])
         xyes, yyes = abs(box[0])
         x,y = w
-        if x >= w_min:
-           draw = cv2.drawContours(frame, [box], 0, (0,255,0),2)
-           #Focal Length = (width@10cm * 10cm)/actual width = 255
-           obstacle1_d = (15*300)/x
-           obstacle1_A = (((xyes + (x/2)) / (320/108)) - 54)
-           cv2.putText(frame, "D: " + str(obstacle1_d), (4,50), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-           cv2.putText(frame, "A: " + str(obstacle1_A), (4,35), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-           cv2.putText(frame, "Obstacle", (4,20), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+        if draw == True:
+            if x >= w_min:
+               draw = cv2.drawContours(frame, [box], 0, (0,255,0),2)
+               #Focal Length = (width@10cm * 10cm)/actual width = 255
+               obstacle1_d = (15*300)/x
+               obstacle1_A = (((xyes + (x/2)) / (320/108)) - 54)
+               cv2.putText(frame, "D: " + str(obstacle1_d), (4,50), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+               cv2.putText(frame, "A: " + str(obstacle1_A), (4,35), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+               cv2.putText(frame, "Obstacle", (4,20), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
     return[[obstacle1_d,obstacle1_A],[obstacle2_d,obstacle2_A]]
+
+## WHITE WALLS
+
+##def detectWalls(hsv_frame, frame)
+##
+##        low_white = np.array([0,0,0], dtype = np.uint8)
+##        high_white = np.array([0 ,0, 255], dtype = np.uint8)
+##        white_mask = cv2.inRange(hsv_frame, low_white, high_white)
+##        img_binary_white = cv2.bitwise_and(frame, frame, mask = white_mask)
+##
+##        img_contours_yellow = img_binary_yellow.copy()
+##        contours_yellow = cv2.findContours(img_contours_yellow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+
 
 def showCam(frame):
     cv2.imshow("cam", frame)
@@ -236,6 +267,9 @@ while True:
         high_white = np.array([0 ,0, 255], dtype = np.uint8)
         white_mask = cv2.inRange(hsv_frame, low_white, high_white)
         img_binary_white = cv2.bitwise_and(frame, frame, mask = white_mask)
+
+        img_contours_yellow = img_binary_yellow.copy()
+        contours_yellow = cv2.findContours(img_contours_yellow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) [-2]
 
         
         

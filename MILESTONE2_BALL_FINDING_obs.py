@@ -11,6 +11,7 @@ import time
 import JUST_DRIVE_SYSTEM
 import vision
 import math
+import matplotlib.pyplot as plt
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -71,12 +72,15 @@ def calcfield(obstacles, ball):
         
     field[0]=0.01
     field[fovsamples-1]=0.02 
-    visualise(field)
+    #visualise(field)
     return field
 
 
 def visualise(data):
-    pass
+    plt.clf()
+    plt.plot(data)
+    plt.draw()
+    plt.pause(0.001)
 
 def findmax(array):
     bestindex =-1
@@ -146,7 +150,7 @@ def main():#DriveSetup):
     frame = hsv_frame
     ballVals= vision.detectBall(hsv_frame,cap)
     vision.drawBall(ballVals,frame)
-    obsVals= vision.detectObstacles(hsv_frame,frame)
+    obsVals= vision.detectObstacles(hsv_frame,frame,True)
     #print(obsVals)
     
     #if Data[0] != None:
@@ -181,6 +185,8 @@ def main():#DriveSetup):
     vision.showCam(frame)
     
 try:
+    plt.ion()
+    plt.show()
     while True:
         main()
 except KeyboardInterrupt:
