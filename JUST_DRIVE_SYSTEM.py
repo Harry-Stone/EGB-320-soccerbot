@@ -4,13 +4,15 @@ Created on Fri Sep 13 15:32:15 2019
 
 @author: User
 """
+import time
 import RPi.GPIO as GPIO
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
 
 # =============================================================================
 # Drive Setup
 # 
 # =============================================================================
-
 # Enable Motors
 # Motor A
 in1 = 12
@@ -18,9 +20,6 @@ in2 = 18
 # Motor B
 in3 = 13
 in4 = 19
-
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
 
 # Set all the motor control pins to outputs
 GPIO.setup(in1, GPIO.OUT)
@@ -53,8 +52,6 @@ def motorspeed2(PWM):
 def motorspeed3(PWM):
     PWM3.ChangeDutyCycle(int(PWM*0.8))
     return PWM3
- 
-W = 12.8310 #cm
 
 # =============================================================================
 # Drive Setup
@@ -80,8 +77,10 @@ def Disable_Motor():
     PWM3.stop()
 
 def SetTargetVelocities(fdval,angval):
-    left_vel = int((fdval*100) - ((((angval/2)*(180/3.14))*W)/32))
-    right_vel = int((fdval*100) + ((((angval/2)*(180/3.14))*W)/32) + 0.5)
+    W = 12.8310 #cm
+    
+    right_vel = int((fdval*100) - ((((angval/2)*(180/3.14))*W)/12))
+    left_vel = int((fdval*100) + ((((angval/2)*(180/3.14))*W)/12))
 
     if left_vel > 100:
         motorspeed0(100)
@@ -127,20 +126,25 @@ def SetTargetVelocities(fdval,angval):
 # =============================================================================
 # Motor Stuff
 # =============================================================================
-        
+
+
+def motorkick():
+    motorspeed0(0)
+    motorspeed1(0)
+    motorspeed2(0)
+    motorspeed3(0)
+    time.sleep(1)
+    motorspeed0(0)
+    motorspeed1(20)
+    motorspeed2(0)
+    motorspeed3(20)
+    time.sleep(0.5)
+    motorspeed0(120)
+    motorspeed1(0)
+    motorspeed2(120)
+    motorspeed3(0)
+    time.sleep(0.5)
+
+
 def clean():
     GPIO.cleanup()
-  
-try:
-    while True:
-        main()
-except KeyboardInterrupt:
-    clean()
-    quit()
-    
-    
-    
-    
-    
-    
-#)

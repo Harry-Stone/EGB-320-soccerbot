@@ -9,6 +9,9 @@ import cv2
 import numpy as np
 import time
 import JUST_DRIVE_SYSTEM
+import vision
+import math
+import matplotlib.pyplot as plt
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -19,9 +22,7 @@ field = range(1,fovsamples)
 grad = 1/30
 obswid = (18+20)/100 #cm
 
-cap = cv2.VideoCapture(0)  		
-cap.set(3, 320)                     	# Set the width to 320
-cap.set(4, 240)                     	# Set the height to 240
+cap = vision.setupVision()
 
 #KickerSetup
 kickpin = 7
@@ -29,61 +30,20 @@ GPIO.setup(kickpin, GPIO.OUT)
 GPIO.output(kickpin, GPIO.LOW)
 GPIO.setup(1, GPIO.IN)
 
-
-##BALL
-def detect():
-    A = None
-    d = None
-    #high_orange = (20, 255, 255)
-    #low_orange = (0, 120, 120)
-    #high_orange = (16, 230, 255)
-    #low_orange = (0, 0, 0)
-    high_orange = (17, 255, 255)
-    low_orange = (0, 59, 112)
-
-    r_min = 2 
-    _, frame = cap.read()
-    fil = cv2.GaussianBlur(frame.copy(), (3,3),0)
-    hsv_frame = cv2.cvtColor(fil, cv2.COLOR_BGR2HSV)
-    img_binary = cv2.inRange(hsv_frame.copy(), low_orange, high_orange)
-    
-    img_binary = cv2.dilate(img_binary, None, iterations = 1)
-
-    # Finding Center of Object
-    img_contours = img_binary.copy()
-    contours = cv2.findContours(img_contours, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) [-2]
-
-    # Finding largest contour and locating x,y values and radius
-    mid = None 
-    r = 0
-    if len(contours) > 0:
-        circle = max(contours, key = cv2.contourArea)
-        ((x,y), r) = cv2.minEnclosingCircle(circle)
-        this = cv2.moments(circle)
-        if this["m00"] > 0:
-            mid = (int(this["m10"] / this["m00"]), int(this["m01"] / this["m00"]))
-            ## Focal Length = (radius@10cm * 10cm)/actual radius
-            d= (2*360)/r
-            A = (x / (320/108)) - 54
-		
-            if r < r_min:
-                mid = None
-
-    # Draw a circle around the ball
-    if mid != None:
-        pass
-        #cv2.circle(frame, mid, int(round(r)), (0,255,0))
-        #cv2.putText(frame, str(d), mid, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255))
-        #cv2.putText(frame, str(A), (4,20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255))
-    
-    #cv2.imshow("cam", frame)
-    #cv2.waitKey(1)
-    if d != None and A != None:
-        res = [d/100, A*3.1415/180]
+def convertBallResult(ball):
+    if ball[0] != None and ball[1] != None:
+        res = [ball[0]/100, ball[1]*3.1415/180]
     else:
-        res = [d,A]
+        res = ball
 
     return (res)
+
+def convertObsResult(obs):
+    for ob in range(len(obs)):
+        if obs[ob][0] != None:
+            obs[ob][0]/=100
+            obs[ob][1]*=(3.1415/180)
+
 
 def zeroes (num):
     out = [0] * num
@@ -112,12 +72,15 @@ def calcfield(obstacles, ball):
         
     field[0]=0.01
     field[fovsamples-1]=0.02 
-    visualise(field)
+    #visualise(field)
     return field
 
 
 def visualise(data):
-    pass
+    plt.clf()
+    plt.plot(data)
+    plt.draw()
+    plt.pause(0.001)
 
 def findmax(array):
     bestindex =-1
@@ -128,12 +91,11 @@ def findmax(array):
             bestindex=i
     return[bestindex,bestval]
 
+
 def indextorad(index):
     return (((-1*fovsamples/2)+index)*(fovsize/fovsamples))
 
 
-
-        
 def clean():
     GPIO.cleanup()
 
@@ -184,8 +146,12 @@ def main():#DriveSetup):
 #    if DriveSetup == 0:
         #JUST_DRIVE_SYSTEM.Motor_Setup()
 #        DriveSetup = 1
-
-    Data = detect()
+    hsv_frame = vision.takeHsvFrame(cap)
+    frame = hsv_frame
+    ballVals= vision.detectBall(hsv_frame,cap)
+    vision.drawBall(ballVals,frame)
+    obsVals= vision.detectObstacles(hsv_frame,frame,True)
+    #print(obsVals)
     
     #if Data[0] != None:
        
@@ -202,19 +168,25 @@ def main():#DriveSetup):
     if BallInDribbler() == False:
         #objectives = findmax(calcfield(obstaclesRB,ballRB))
         #objectives = findmax(calcfield(None,[Data[1]/100,Data[0]*3.14/180]))
-        objectives = findmax(calcfield(None,Data))
+        objectives = findmax(calcfield(convertObsResult(obsVals),convertBallResult(ballVals)))
     else:
         #print('looking for the goal')
         #objectives = findmax(calcfield(None,Data))
         #objectives = findmax(calcfield(None,None))
         #if abs((indextorad(objectives[0]))) < 0.05:
             #KickBall()
+        
         JUST_DRIVE_SYSTEM.motorkick()
-        objectives=[0,0]
+        #objectives=[0,0]
+
+        objectives = findmax(calcfield(convertObsResult(obsVals),convertBallResult(ballVals)))
           
-    setdrive(Speed,indextorad(objectives[0]))
+    setdrive(0,indextorad(objectives[0]))
+    vision.showCam(frame)
     
 try:
+    plt.ion()
+    plt.show()
     while True:
         main()
 except KeyboardInterrupt:
