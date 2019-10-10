@@ -90,6 +90,8 @@ def detectObstacles(hsv_frame, frame, draw):
     obstacle1_A= None
     obstacle2_d= None
     obstacle2_A= None
+    obstacle3_d= None
+    obstacle3_A= None
     w_min = 10
     if len(contours1) > 0:
         obstacles = []
@@ -154,7 +156,7 @@ def detectObstacles(hsv_frame, frame, draw):
                cv2.putText(frame, "A: " + str(obstacle1_A), (4,35), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
                cv2.putText(frame, "Obstacle", (4,20), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
-    return[[obstacle1_d,obstacle1_A],[obstacle2_d,obstacle2_A]]
+    return[[obstacle1_d,obstacle1_A],[obstacle2_d,obstacle2_A],[obstacle3_d,obstacle3_A]]
 
 ## WHITE WALLS
 

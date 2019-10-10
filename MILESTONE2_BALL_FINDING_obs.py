@@ -176,7 +176,7 @@ def main():#DriveSetup):
         #if abs((indextorad(objectives[0]))) < 0.05:
             #KickBall()
         
-        #JUST_DRIVE_SYSTEM.motorkick()
+        JUST_DRIVE_SYSTEM.motorkick()
         #objectives=[0,0]
 
         objectives = findmax(calcfield(convertObsResult(obsVals),convertBallResult(ballVals)))
