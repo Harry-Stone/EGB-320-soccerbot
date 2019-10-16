@@ -69,9 +69,9 @@ def drawBall(vals,frame):
     if mid != None:
         #pass
         cv2.circle(frame, mid, int(round(r)), (0,255,0))
-        cv2.putText(frame, str(d), mid, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
-        cv2.putText(frame, str(A), (mid[0],(mid[1]+20)), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0))
-        cv2.putText(frame, "Ball", (mid[0],(mid[1]+40)), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0))
+        #cv2.putText(frame, str(d), mid, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
+        #cv2.putText(frame, str(A), (mid[0],(mid[1]+20)), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0))
+        #cv2.putText(frame, "Ball", (mid[0],(mid[1]+40)), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0))
 
 
 def detectObstacles(hsv_frame, frame, draw):
@@ -119,9 +119,9 @@ def detectObstacles(hsv_frame, frame, draw):
                     drawobstacle3 = cv2.drawContours(frame, [obstacle3_box], 0, (0,255,0),2)
                     obstacle3_d = (15*300)/obstacle3_x2
                     obstacle3_A = (((obstacle3_x + (obstacle3_x2/2)) / (320/108)) - 54)
-                    cv2.putText(frame, "D: " + str(obstacle3_d), (4,140), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-                    cv2.putText(frame, "A: " + str(obstacle3_A), (4,125), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-                    cv2.putText(frame, "Obstacle3", (4,110), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+                    #cv2.putText(frame, "D: " + str(obstacle3_d), (4,140), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+                    #cv2.putText(frame, "A: " + str(obstacle3_A), (4,125), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+                    #cv2.putText(frame, "Obstacle3", (4,110), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
         if len(Contour_size) > 1:
             obstacle2 = Contour_size[1][1]
@@ -136,9 +136,9 @@ def detectObstacles(hsv_frame, frame, draw):
                     drawobstacle2 = cv2.drawContours(frame, [obstacle2_box], 0, (0,255,0),2)
                     obstacle2_d = (15*300)/obstacle2_x2
                     obstacle2_A = (((obstacle2_x + (obstacle2_x2/2)) / (320/108)) - 54)
-                    cv2.putText(frame, "D: " + str(obstacle2_d), (4,95), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-                    cv2.putText(frame, "A: " + str(obstacle2_A), (4,80), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-                    cv2.putText(frame, "Obstacle2", (4,65), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+                    #cv2.putText(frame, "D: " + str(obstacle2_d), (4,95), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+                    #cv2.putText(frame, "A: " + str(obstacle2_A), (4,80), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+                    #cv2.putText(frame, "Obstacle2", (4,65), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
        
        
@@ -155,9 +155,9 @@ def detectObstacles(hsv_frame, frame, draw):
                #Focal Length = (width@10cm * 10cm)/actual width = 255
                obstacle1_d = (15*300)/x
                obstacle1_A = (((xyes + (x/2)) / (320/108)) - 54)
-               cv2.putText(frame, "D: " + str(obstacle1_d), (4,50), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-               cv2.putText(frame, "A: " + str(obstacle1_A), (4,35), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-               cv2.putText(frame, "Obstacle", (4,20), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+               #cv2.putText(frame, "D: " + str(obstacle1_d), (4,50), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+               #cv2.putText(frame, "A: " + str(obstacle1_A), (4,35), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+               #cv2.putText(frame, "Obstacle", (4,20), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
     return[[obstacle1_d,obstacle1_A],[obstacle2_d,obstacle2_A],[obstacle3_d,obstacle3_A]]
 
@@ -186,8 +186,8 @@ def detectYellowGoal(hsv_frame,cap):
             mid_yellow = (int(this2["m10"] / this2["m00"]), int(this2["m01"] / this2["m00"]))
             yellowgoal_A = (x_yellow / (320/108)) - 54
 
-    if mid_yellow != None:
-        cv2.putText(frame, "Yellow Goal", mid_yellow, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+    #if mid_yellow != None:
+        #cv2.putText(frame, "Yellow Goal", mid_yellow, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
     return[yellowgoal_A, yellowgoal_D]
 
@@ -221,8 +221,8 @@ def detectBlueGoal(hsv_frame, cap):
             if r_bluegoal < r_min:
                 mid2 = None
 
-    if mid2 != None:
-        cv2.putText(frame, "Blue Goal", mid2, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+    #if mid2 != None:
+        #cv2.putText(frame, "Blue Goal", mid2, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
     return[bluegoal_A, bluegoal_d]
 
