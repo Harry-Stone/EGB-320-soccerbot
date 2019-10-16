@@ -15,8 +15,8 @@ GPIO.setmode(GPIO.BCM)
 # =============================================================================
 # Enable Motors
 # Motor A
-in1 = 12
-in2 = 18
+in1 = 18
+in2 = 12
 # Motor B
 in3 = 13
 in4 = 19
@@ -79,8 +79,8 @@ def Disable_Motor():
 def SetTargetVelocities(fdval,angval):
     W = 12.8310 #cm
     
-    right_vel = int((fdval*100) - ((((angval/2)*(180/3.14))*W)/12))
-    left_vel = int((fdval*100) + ((((angval/2)*(180/3.14))*W)/12))
+    right_vel = int(((fdval)*100)*1.2 - (angval*W)*1.7)     #/12
+    left_vel = int(((fdval)*100)*1.2 + (angval*W)*1.7)      #/12
 
     if left_vel > 100:
         motorspeed0(100)

@@ -11,15 +11,18 @@ import time
 
 def setupVision():
     cap = cv2.VideoCapture(0) 
-    cap.set(3, 320)                         # Set the width to 320
-    cap.set(4, 240)                         # Set the height to 240
-    cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)                    	# Set the height to 240
-    cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.01)
+    cap.set(3, 320)                        
+    cap.set(4, 240)
+
+    cap.set(cv2.CAP_PROP_EXPOSURE, 0.6)                    	
+    cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.05) 
     cap.set(cv2.CAP_PROP_BRIGHTNESS, 0.5)
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1) # remove if not working
     return cap
 
 def takeHsvFrame(cap):
     _, frame = cap.read()
+    frame = frame[0:190, 0:320]
     fil = cv2.GaussianBlur(frame.copy(), (3,3),0)
     return cv2.cvtColor(fil, cv2.COLOR_BGR2HSV)  
 
@@ -27,7 +30,7 @@ def detectBall(hsv_frame,cap):
     A = None
     d = None
     high_orange = (17, 255, 255)
-    low_orange = (0, 59, 112)
+    low_orange = (0, 82, 112)
 
     r_min = 2 
     _, frame = cap.read()
@@ -75,7 +78,7 @@ def detectObstacles(hsv_frame, frame, draw):
     A1 = None
     d1 = None
     x = None
-    high_black = np.array([85,70,40])
+    high_black = np.array([255,255,39])
     low_black = np.array([0,0,0])
 
     img_binary1 = cv2.inRange(hsv_frame.copy(), low_black, high_black)
@@ -158,23 +161,80 @@ def detectObstacles(hsv_frame, frame, draw):
 
     return[[obstacle1_d,obstacle1_A],[obstacle2_d,obstacle2_A],[obstacle3_d,obstacle3_A]]
 
-## WHITE WALLS
+def detectYellowGoal(hsv_frame,cap):
 
-##def detectWalls(hsv_frame, frame)
-##
-##        low_white = np.array([0,0,0], dtype = np.uint8)
-##        high_white = np.array([0 ,0, 255], dtype = np.uint8)
-##        white_mask = cv2.inRange(hsv_frame, low_white, high_white)
-##        img_binary_white = cv2.bitwise_and(frame, frame, mask = white_mask)
-##
-##        img_contours_yellow = img_binary_yellow.copy()
-##        contours_yellow = cv2.findContours(img_contours_yellow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    yellowgoal_A = None
+    yellowgoal_d = None
+    
+    
+    low_yellow = np.array([20,100,63])
+    high_yellow = np.array([41,255,255])
+    yellow_mask = cv2.inRange(hsv_frame, low_yellow, high_yellow)
+    img_binary_yellow = cv2.dilate(yellow_mask, None, iterations = 1)
+
+    img_contours_yellow = img_binary_yellow.copy()
+    contours_yellow = cv2.findContours(img_contours_yellow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) [-2]
+
+    mid_yellow = None 
+    r_yellow = 0
+    r_min = 0
+    if len(contours_yellow) > 0:
+        square_yellow = max(contours_yellow, key = cv2.contourArea)
+        ((x_yellow,y_yellow), r_yellow) = cv2.minEnclosingCircle(square_yellow)
+        this2 = cv2.moments(square_yellow)
+        if this2["m00"] > 0:
+            mid_yellow = (int(this2["m10"] / this2["m00"]), int(this2["m01"] / this2["m00"]))
+            yellowgoal_A = (x_yellow / (320/108)) - 54
+
+    if mid_yellow != None:
+        cv2.putText(frame, "Yellow Goal", mid_yellow, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+
+    return[yellowgoal_A, yellowgoal_D]
+
+
+
+def detectBlueGoal(hsv_frame, cap):
+    
+    low_blue = np.array([60, 0, 0])
+    high_blue = np.array([133, 90, 153])
+    blue_mask = cv2.inRange(hsv_frame, low_blue, high_blue)
+    img_binary2 = cv2.dilate(blue_mask, None, iterations = 1)
+
+    # Finding Center of Object
+    img_contours2 = img_binary2.copy()
+    contours2 = cv2.findContours(img_contours2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) [-2]
+
+
+    # Finding largest contour and locating x,y values and radius
+    mid2 = None 
+    r_bluegoal = 2
+    r_min = 0
+    if len(contours2) > 0:
+        yes = max(contours2, key = cv2.contourArea)
+        ((x_bluegoal,y_bluegoal), r_bluegoal) = cv2.minEnclosingCircle(yes)
+        this2 = cv2.moments(yes)
+        if this2["m00"] > 0:
+            mid2 = (int(this2["m10"] / this2["m00"]), int(this2["m01"] / this2["m00"]))
+            bluegoal_d = (28*255)/r_bluegoal
+            bluegoal_A = (x_bluegoal / (320/108)) - 54
+        
+            if r_bluegoal < r_min:
+                mid2 = None
+
+    if mid2 != None:
+        cv2.putText(frame, "Blue Goal", mid2, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+
+    return[bluegoal_A, bluegoal_d]
 
 
 
 def showCam(frame):
     cv2.imshow("cam", frame)
     key = cv2.waitKey(1)
+
+
+
+
 
 """ cap = setupVision()
 
@@ -186,95 +246,7 @@ while True:
     ballVals=detectBall(hsv_frame)
     drawBall(ballVals)
     obsVals=detectObstacles(hsv_frame)
-    print(obsVals)
-
-
-#### BLUE GOAL
-##
-##    low_blue = np.array([94, 80, 2])
-##    high_blue = np.array([126, 255, 255])
-##    blue_mask = cv2.inRange(hsv_frame, low_blue, high_blue)
-##    img_binary2 = cv2.dilate(blue_mask, None, iterations = 1)
-##
-##    # Finding Center of Object
-##    img_contours2 = img_binary2.copy()
-##    contours2 = cv2.findContours(img_contours2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) [-2]
-##
-##
-##    # Finding largest contour and locating x,y values and radius
-##    mid2 = None 
-##    r2 = 0
-##    if len(contours2) > 0:
-##        yes = max(contours2, key = cv2.contourArea)
-##        ((x2,y2), r2) = cv2.minEnclosingCircle(yes)
-##        this2 = cv2.moments(yes)
-##        if this2["m00"] > 0:
-##            mid2 = (int(this2["m10"] / this2["m00"]), int(this2["m01"] / this2["m00"]))
-##            ## Focal Length = (radius@10cm * 10cm)/actual radius = 255
-##        #    d= (2*225)/r
-##            ## Each pixel is (9/80) of an angle
-##         #   A = (x / (320/108)) - 54
-##        
-##            if r < r_min:
-##                mid2 = None
-##
-##    if mid2 != None:
-##        cv2.putText(frame, "Blue Goal", mid2, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-
-
-
-## YELLOW GOAL
-
-    low_yellow = np.array([20,100,100])
-    high_yellow = np.array([25,255,255])
-    yellow_mask = cv2.inRange(hsv_frame, low_yellow, high_yellow)
-    img_binary_yellow = cv2.dilate(yellow_mask, None, iterations = 1)
-
-    # Finding Center of Object
-    img_contours_yellow = img_binary_yellow.copy()
-    contours_yellow = cv2.findContours(img_contours_yellow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) [-2]
-
-
-    # Finding largest contour and locating x,y values and radius
-    mid_yellow = None 
-    r_yellow = 0
-    r_min = 0
-    if len(contours_yellow) > 0:
-        square_yellow = max(contours_yellow, key = cv2.contourArea)
-        ((x_yellow,y_yellow), r_yellow) = cv2.minEnclosingCircle(square_yellow)
-        this2 = cv2.moments(square_yellow)
-        if this2["m00"] > 0:
-            mid_yellow = (int(this2["m10"] / this2["m00"]), int(this2["m01"] / this2["m00"]))
-            ## Focal Length = (radius@10cm * 10cm)/actual radius = 255
-            yellowgoal_d = (28*255)/r_yellow
-            ## Each pixel is (9/80) of an angle
-            yellowgoal_A = (x_yellow / (320/108)) - 54
-            print(r_yellow)
-        
-            if r_yellow < r_min:
-                mid_yellow = None
-                
-    if mid_yellow != None:
-        cv2.circle(frame, mid_yellow, int(round(r_yellow)), (0,255,255))
-        cv2.putText(frame, "Yellow Goal", mid_yellow, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-        cv2.putText(frame, str(yellowgoal_d), (4, 20), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-        cv2.putText(frame, str(yellowgoal_A), (4,35), cv2.FONT_HERSHEY_PLAIN,1, (0,255,255))
-
-
-
-
-## WHITE WALLS
-
-        low_white = np.array([0,0,0], dtype = np.uint8)
-        high_white = np.array([0 ,0, 255], dtype = np.uint8)
-        white_mask = cv2.inRange(hsv_frame, low_white, high_white)
-        img_binary_white = cv2.bitwise_and(frame, frame, mask = white_mask)
-
-        img_contours_yellow = img_binary_yellow.copy()
-        contours_yellow = cv2.findContours(img_contours_yellow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) [-2]
-
-        
-        
+    print(obsVals)      
 
     
     cv2.imshow("cam", frame)

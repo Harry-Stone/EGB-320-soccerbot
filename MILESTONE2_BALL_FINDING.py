@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 import time
 import JUST_DRIVE_SYSTEM
+import vision
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -29,9 +30,11 @@ GPIO.setup(kickpin, GPIO.OUT)
 GPIO.output(kickpin, GPIO.LOW)
 GPIO.setup(1, GPIO.IN)
 
-
+def takeFrame():
+    _, frame = cap.read()
+    return frame
 ##BALL
-def detect():
+def detectBall(frame):
     A = None
     d = None
     #high_orange = (20, 255, 255)
@@ -42,7 +45,7 @@ def detect():
     low_orange = (0, 59, 112)
 
     r_min = 2 
-    _, frame = cap.read()
+    #_, frame = cap.read()
     fil = cv2.GaussianBlur(frame.copy(), (3,3),0)
     hsv_frame = cv2.cvtColor(fil, cv2.COLOR_BGR2HSV)
     img_binary = cv2.inRange(hsv_frame.copy(), low_orange, high_orange)
@@ -84,6 +87,9 @@ def detect():
         res = [d,A]
 
     return (res)
+
+def detectObs:
+
 
 def zeroes (num):
     out = [0] * num
@@ -128,12 +134,11 @@ def findmax(array):
             bestindex=i
     return[bestindex,bestval]
 
+
 def indextorad(index):
     return (((-1*fovsamples/2)+index)*(fovsize/fovsamples))
 
 
-
-        
 def clean():
     GPIO.cleanup()
 
@@ -184,8 +189,9 @@ def main():#DriveSetup):
 #    if DriveSetup == 0:
         #JUST_DRIVE_SYSTEM.Motor_Setup()
 #        DriveSetup = 1
-
-    Data = detect()
+    frame = takeFrame()
+    ballData = detectBall(frame)
+    obsdata = detectObstacles(frame)
     
     #if Data[0] != None:
        
@@ -202,7 +208,7 @@ def main():#DriveSetup):
     if BallInDribbler() == False:
         #objectives = findmax(calcfield(obstaclesRB,ballRB))
         #objectives = findmax(calcfield(None,[Data[1]/100,Data[0]*3.14/180]))
-        objectives = findmax(calcfield(None,Data))
+        objectives = findmax(calcfield(None,ballData))
     else:
         #print('looking for the goal')
         #objectives = findmax(calcfield(None,Data))

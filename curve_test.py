@@ -11,7 +11,7 @@ import time
 import JUST_DRIVE_SYSTEM
 import vision
 import math
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -20,9 +20,13 @@ fovsize = 1 # 1 radian
 fovsamples = 60 #samples in FOV 
 field = range(1,fovsamples)
 grad = 1/30
-obswid = (18+20)/100 #cm
+obswid = (20+20)/100 #cm
 obsMem = [0,0] #number that decrements and is set to something when an obstacle is in the exremity
 obsMemFrames = 15 # number of frmaes untill an obstacle is forgotten
+goal = 'blue'
+max_fd_vel = 0.2
+max_rvel = 0.5
+k = 0.8
 
 cap = vision.setupVision()
 
@@ -85,35 +89,30 @@ def calcRepel(obstacles,field):
     return field
 
     
-def calcfield(obstacles, ballRB):
+def calcfield(obstacles, objectiveRB):
     field = zeroes(fovsamples)
     field = calcRepel(obstacles,field)
-    if ballRB != None:
-        if ballRB[0]!=None:
-            for i in range(0,fovsamples):
-                field[i]+=1-abs(((-1*fovsamples/2)+i)*fovsize/fovsamples-ballRB[1])*(0.5)
-        #visualise(field)
-        return field
+    if objectiveRB[1] != None:       
+        for i in range(0,fovsamples):
+            field[i]+=1-abs(((-1*fovsamples/2)+i)*fovsize/fovsamples-objectiveRB[1])*(0.5)
+    else:
+        field[0]=1
+    #visualise(field)
+    return field
+
 
 
 def visualise(data):
-    plt.clf()
-    plt.plot(data)
-    plt.draw()
-    plt.pause(0.001)
+    pass
 
 def findmax(array):
     bestindex =-1
-    bestval = -100
+    bestval = -1
     midval = array[30]
-    for i in range(len(array)):
-        #print(str(array[i])+' vs '+str(bestval))
+    for i in range(0,len(array)):
         if array[i]>bestval:
             bestval=array[i]
             bestindex=i
-            #print(bestindex)
-    #print(array)
-    #print('midval:'+str(midval)+'    Best Index:'+str(bestindex))
     return[bestindex,midval]
 
 
@@ -126,12 +125,14 @@ def clean():
 
 
 def setdrive(dist, rps):
-        
-    JUST_DRIVE_SYSTEM.SetTargetVelocities(dist,rps)
-    #print('Speed forward:'+ str(dist)+'       Turn Amount:'+str(rps))
+    JUST_DRIVE_SYSTEM.SetTargetVelocities(max_fd_vel*(1-k*abs(rps/max_rvel)),rps)
+    print('speed:'+str(max_fd_vel*(1-k*abs(rps/max_rvel)))+' rps:'+str(rps))
+
+
 def BallInDribbler():
     if GPIO.input(1):
-        return True
+        return False #DEAR GOD CHANGE THIS TO True IF YOU NEED IT
+
     else:
         return False
 
@@ -165,8 +166,8 @@ def main():#DriveSetup):
     vision.showCam(frame)
     
 try:
-    plt.ion()
-    plt.show()
+    #plt.ion()
+    #plt.show()
     while True:
         main()
 except KeyboardInterrupt:

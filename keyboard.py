@@ -12,6 +12,7 @@ import JUST_DRIVE_SYSTEM
 import vision
 import math
 import matplotlib.pyplot as plt
+import sys
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -31,6 +32,42 @@ kickpin = 7
 GPIO.setup(kickpin, GPIO.OUT)
 GPIO.output(kickpin, GPIO.LOW)
 GPIO.setup(1, GPIO.IN)
+
+class _Getch:
+    """Gets a single character from standard input.  Does not echo to the
+screen."""
+    def __init__(self):
+        try:
+            self.impl = _GetchWindows()
+        except ImportError:
+            self.impl = _GetchUnix()
+
+    def __call__(self): return self.impl()
+
+
+class _GetchUnix:
+    def __init__(self):
+        import tty, sys
+
+    def __call__(self):
+        import sys, tty, termios
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(sys.stdin.fileno())
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
+
+
+class _GetchWindows:
+    def __init__(self):
+        import msvcrt
+
+    def __call__(self):
+        import msvcrt
+        return msvcrt.getch()
 
 def convertBallResult(ball):
     if ball[0] != None and ball[1] != None:
@@ -141,32 +178,45 @@ def KickBall():
     time.sleep(0.5)
     GPIO.output(kickpin, GPIO.LOW)
     JUST_DRIVE_SYSTEM.Enable_Motor()
-    #clean()
-    #quit()
+
+def keyDrive(input):
+    if input == 'w':
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(0.2,0)
+    elif input == 'W':
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(1,0)
+    elif input == 's':
+        print('s')
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(-0.2,0)
+    elif input == 'S':
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(-1,0)
+    elif input == 'd':
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(0,0.2)
+    elif input == 'D':
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(0,0.5)
+    elif input == 'a':
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(0,-0.2)
+    elif input == 'A':
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(0,-0.5)
+    elif input == 'K' or input == 'k':
+        JUST_DRIVE_SYSTEM.motorkick()
+    else:
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(0,0)
 
 
-def main():#DriveSetup):
-	
-#    if DriveSetup == 0:
-        #JUST_DRIVE_SYSTEM.Motor_Setup()
-#        DriveSetup = 1
+def main():
+
     hsv_frame = vision.takeHsvFrame(cap)
     frame = hsv_frame
     ballVals= vision.detectBall(hsv_frame,cap)
     obsVals= vision.detectObstacles(hsv_frame,frame,True)
     vision.drawBall(ballVals,frame)
-    field = calcfield(convertObsResult(obsVals),convertBallResult(ballVals))
-    objectives = findmax(field)
-          
-    setdrive(objectives[1],indextorad(objectives[0]))
-    if BallInDribbler():
-        JUST_DRIVE_SYSTEM.motorkick()
-    #print('objectives'+str(objectives))
     vision.showCam(frame)
-    
+    key = sys.stdin.read(1)
+    print(key)
+    keyDrive(key)
 try:
-    plt.ion()
-    plt.show()
+    #plt.ion()
+    #plt.show()
     while True:
         main()
 except KeyboardInterrupt:

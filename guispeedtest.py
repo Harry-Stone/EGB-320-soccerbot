@@ -22,8 +22,8 @@ GUI.grid_rowconfigure(2, weight = 1)
 # Enable Motors
 EN = 21
 # Motor A
-in1 = 12
-in2 = 18
+in1 = 18
+in2 = 12
 # Motor B
 in3 = 13
 in4 = 19
@@ -89,7 +89,7 @@ def Top_Speed():
     motorspeed1(0)
     motorspeed2(90)
     motorspeed3(0)
-    sleep(2)
+    sleep(10)
     motorspeed0(0)
     motorspeed2(0)
 
@@ -119,18 +119,21 @@ def Forward_Angle_Speed():
     elif left_vel > 0:
         motorspeed0(left_vel)
         motorspeed1(0)
+
+    elif left_vel < -100:
+        motorspeed0(0)
+        motorspeed1(100)
     
     elif left_vel < 0:
         motorspeed0(0)
         motorspeed1(abs(left_vel))
 
-    elif left_vel < -100:
-        motorspeed0(0)
-        motorspeed1(100)
+    
 
     else:
-        motorspeed0(0)
-        motorspeed1(0)
+        pass
+        #motorspeed0(0)
+        #motorspeed1(0)
 
     if right_vel > 100:
         motorspeed2(100)
@@ -139,19 +142,19 @@ def Forward_Angle_Speed():
     elif right_vel > 0:
         motorspeed2(right_vel)
         motorspeed3(0)
+
+    elif right_vel < -100:
+        motorspeed2(0)
+        motorspeed3(100)
     
     elif right_vel < 0:
         motorspeed2(0)
         motorspeed3(abs(right_vel))
 
-    elif right_vel < -100:
-        motorspeed2(0)
-        motorspeed3(100)
-
     else:
-        motorspeed2(0)
-        motorspeed3(0)
-        
+        #motorspeed2(0)
+        #motorspeed3(0)
+        pass
     sleep(3)
     
     motorspeed0(0)
