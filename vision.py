@@ -17,7 +17,7 @@ def setupVision():
     cap.set(cv2.CAP_PROP_EXPOSURE, 0.6)                    	
     cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.05) 
     cap.set(cv2.CAP_PROP_BRIGHTNESS, 0.5)
-    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1) # remove if not working
+    ##cap.set(cv2.CAP_PROP_BUFFERSIZE, 1) # remove if not working
     return cap
 
 def takeHsvFrame(cap):
@@ -32,7 +32,7 @@ def detectBall(hsv_frame,cap):
     high_orange = (17, 255, 255)
     low_orange = (0, 82, 112)
 
-    r_min = 2 
+    r_min = 4 
     _, frame = cap.read()
     img_binary = cv2.inRange(hsv_frame.copy(), low_orange, high_orange)
 
@@ -51,7 +51,6 @@ def detectBall(hsv_frame,cap):
         this = cv2.moments(circle)
         if this["m00"] > 0:
             mid = (int(this["m10"] / this["m00"]), int(this["m01"] / this["m00"]))
-            ## Focal Length = (radius@10cm * 10cm)/actual radius
             d= (2*360)/r
             A = (x / (320/108)) - 54
 		
@@ -161,14 +160,14 @@ def detectObstacles(hsv_frame, frame, draw):
 
     return[[obstacle1_d,obstacle1_A],[obstacle2_d,obstacle2_A],[obstacle3_d,obstacle3_A]]
 
-def detectYellowGoal(hsv_frame,cap):
+def detectYellowGoal(hsv_frame,frame,cap):
 
     yellowgoal_A = None
     yellowgoal_d = None
     
     
-    low_yellow = np.array([20,100,63])
-    high_yellow = np.array([41,255,255])
+    low_yellow = np.array([22,100,63])
+    high_yellow = np.array([30,255,255])
     yellow_mask = cv2.inRange(hsv_frame, low_yellow, high_yellow)
     img_binary_yellow = cv2.dilate(yellow_mask, None, iterations = 1)
 
@@ -177,7 +176,7 @@ def detectYellowGoal(hsv_frame,cap):
 
     mid_yellow = None 
     r_yellow = 0
-    r_min = 0
+    r_min = 10
     if len(contours_yellow) > 0:
         square_yellow = max(contours_yellow, key = cv2.contourArea)
         ((x_yellow,y_yellow), r_yellow) = cv2.minEnclosingCircle(square_yellow)
@@ -185,18 +184,19 @@ def detectYellowGoal(hsv_frame,cap):
         if this2["m00"] > 0:
             mid_yellow = (int(this2["m10"] / this2["m00"]), int(this2["m01"] / this2["m00"]))
             yellowgoal_A = (x_yellow / (320/108)) - 54
+            yellowgoal_d = (28*255)/r_yellow
 
-    #if mid_yellow != None:
-        #cv2.putText(frame, "Yellow Goal", mid_yellow, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+    if mid_yellow != None:
+        cv2.putText(frame, "Yellow Goal", mid_yellow, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
-    return[yellowgoal_A, yellowgoal_D]
+    return[yellowgoal_A, yellowgoal_d]
 
 
 
-def detectBlueGoal(hsv_frame, cap):
+def detectBlueGoal(hsv_frame, frame, cap):
     
-    low_blue = np.array([60, 0, 0])
-    high_blue = np.array([133, 90, 153])
+    low_blue = np.array([89, 116, 0])
+    high_blue = np.array([255,190,255])
     blue_mask = cv2.inRange(hsv_frame, low_blue, high_blue)
     img_binary2 = cv2.dilate(blue_mask, None, iterations = 1)
 
@@ -206,7 +206,9 @@ def detectBlueGoal(hsv_frame, cap):
 
 
     # Finding largest contour and locating x,y values and radius
-    mid2 = None 
+    mid2 = None
+    bluegoal_A = None
+    bluegoal_d = None
     r_bluegoal = 2
     r_min = 0
     if len(contours2) > 0:
@@ -221,8 +223,8 @@ def detectBlueGoal(hsv_frame, cap):
             if r_bluegoal < r_min:
                 mid2 = None
 
-    #if mid2 != None:
-        #cv2.putText(frame, "Blue Goal", mid2, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+    if mid2 != None:
+        cv2.putText(frame, "Blue Goal", mid2, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
     return[bluegoal_A, bluegoal_d]
 
@@ -234,19 +236,21 @@ def showCam(frame):
 
 
 
+'''
 
-
-""" cap = setupVision()
+cap = setupVision()
 
 while True:
 
     start_time = time.time()
-    hsv_frame = takeHsvFrame()
+    hsv_frame = takeHsvFrame(cap)
     frame = hsv_frame
-    ballVals=detectBall(hsv_frame)
-    drawBall(ballVals)
-    obsVals=detectObstacles(hsv_frame)
-    print(obsVals)      
+    ballVals=detectBall(hsv_frame,cap)
+    drawBall(ballVals,frame)
+    obsVals=detectObstacles(hsv_frame,frame, True)
+    detectBlueGoal(hsv_frame, cap)
+    detectYellowGoal(hsv_frame,cap)
+    #print(obsVals)      
 
     
     cv2.imshow("cam", frame)
@@ -256,5 +260,5 @@ while True:
     if key == 27:
         break
 
-    print("Hz: " + str(round(1/(time.time() - start_time))))
- """
+    #print("Hz: " + str(round(1/(time.time() - start_time))))
+ '''
