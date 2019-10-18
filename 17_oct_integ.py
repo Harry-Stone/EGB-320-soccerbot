@@ -29,6 +29,7 @@ max_rvel = 0.5
 k = 0.8
 circleCountdownRunning = False
 timeToTurnCircle = 5 #seconds
+obsFlag = False
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -43,12 +44,12 @@ cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 GPIO.setup(1, GPIO.IN) #set laser pin as input
 
 def LedBlue():
-    GPIO.output(16, GPIO.HIGH)
-    GPIO.output(20, GPIO.LOW)
-
-def LedYellow():
     GPIO.output(20, GPIO.HIGH)
     GPIO.output(16, GPIO.LOW)
+
+def LedYellow():
+    GPIO.output(16, GPIO.HIGH)
+    GPIO.output(20, GPIO.LOW)
 
 def ToggleLed():
     global scoreGoal
@@ -58,6 +59,7 @@ def ToggleLed():
     else:
         scoreGoal = 'yellow'
         LedYellow()
+    print('target to score changed to:'+str(scoreGoal))
 
 def checkLedSwitch():
     if GPIO.input(21):
@@ -108,6 +110,8 @@ def changeLook():
     
 def calcRepel(obstacles,field):
     global obsMem
+    global obsFlag #
+    checkHold = False #
     obsMem[0]-=1
     obsMem[1]-=1
     if (obsMem[0]>0 or obsMem[1]>0) and obstacles == None:
@@ -120,7 +124,8 @@ def calcRepel(obstacles,field):
         for obstacle in obstacles:
             if obstacle != None:
                 if obstacle[0] != None:
-                    if obstacle[0]<0.5:
+                    if obstacle[0]<0.3:
+                        checkHold = True #
                         if obstacle[1]>0.4:
                             obsMem[1]=obsMemFrames
                         elif obstacle[1]<-0.4:
@@ -137,6 +142,7 @@ def calcRepel(obstacles,field):
                             field[i]+=(abs(((-1*fovsamples/2)+i)*fovsize/fovsamples-obstacleangle)*0.3)-0.2#(grad/obstacledist)
                         if (samplerad > obstacleangle-obs_falloff and samplerad < obstacleangle+obs_falloff):
                             field[i]=-1
+    obsFlag = checkHold #
     return field
 
     
@@ -178,9 +184,12 @@ def clean():
 
 
 def setdrive(dist, rps):
-    JUST_DRIVE_SYSTEM.SetTargetVelocities(2*max_fd_vel*(1-k*abs(rps/max_rvel)),2*rps)
-    #print('speed:'+str(max_fd_vel*(1-k*abs(rps/max_rvel)))+' rps:'+str(rps))
-
+    if obsFlag:
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(max_fd_vel*(1-k*abs(rps/max_rvel)),rps)
+        #print('speed:'+str(max_fd_vel*(1-k*abs(rps/max_rvel)))+' rps:'+str(rps))
+        print('backwards')
+    else:
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(max_fd_vel*(1-k*abs(rps/max_rvel)),rps)
 
 def BallInDribbler():
     if GPIO.input(1):
@@ -216,13 +225,17 @@ def main():
 
     if BallInDribbler():
         lookingFor = scoreGoal
+        JUST_DRIVE_SYSTEM.startDribble()
     elif ballRB != None:
+        JUST_DRIVE_SYSTEM.stopDribble()
         if ballRB[0]!=None:
             if circleCountdownRunning:
                 changeLookTimer.cancel()
                 circleCountdownRunning = False
                 print('canceled search countdown because seen ball')
             lookingFor = 'ball'
+    else:
+        JUST_DRIVE_SYSTEM.stopDribble()
 
 
     if circleCountdownRunning == False and objectiveRB == None:
