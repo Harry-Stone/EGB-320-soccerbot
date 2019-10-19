@@ -8,12 +8,19 @@ Created on Sun Sep 15 21:43:47 2019
 import cv2
 import numpy as np
 import time
+import os
+
+#kernel = np.ones((5,5), np.uint8) ##
 
 def setupVision():
     cap = cv2.VideoCapture(0) 
     cap.set(3, 320)                        
     cap.set(4, 240)
 
+    os.system("v4l2-ctl --set-ctrl=white_balance_auto_preset=4")
+    os.system("v4l2-ctl --set-ctrl=auto_exposure=1")
+    os.system("v4l2-ctl --set-ctrl=exposure_time_absolute=450")
+    
     cap.set(cv2.CAP_PROP_EXPOSURE, 0.6)                    	
     cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.05) 
     cap.set(cv2.CAP_PROP_BRIGHTNESS, 0.5)
@@ -29,14 +36,13 @@ def takeHsvFrame(cap):
 def detectBall(hsv_frame,cap):
     A = None
     d = None
-    high_orange = (17, 255, 255)
-    low_orange = (0, 82, 112)
-
+    high_orange = (16, 255, 255)
+    low_orange = (0, 79, 0)
     r_min = 4 
     _, frame = cap.read()
     img_binary = cv2.inRange(hsv_frame.copy(), low_orange, high_orange)
-
-    img_binary = cv2.dilate(img_binary, None, iterations = 1)
+    #img_binary = cv2.erode(img_binary, kernel, iterations = 1)
+    #img_binary = cv2.dilate(img_binary, kernel, iterations = 1)
 
    # Finding Center of Object
     img_contours = img_binary.copy()
@@ -73,15 +79,16 @@ def drawBall(vals,frame):
         #cv2.putText(frame, "Ball", (mid[0],(mid[1]+40)), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0))
 
 
-def detectObstacles(hsv_frame, frame, draw):
+def detectObstacles(hsv_frame, frame, draw, kernel):
     A1 = None
     d1 = None
     x = None
-    high_black = np.array([255,255,39])
-    low_black = np.array([0,0,0])
+    high_black = np.array([255,255,63])
+    low_black = np.array([70,0,0])
 
     img_binary1 = cv2.inRange(hsv_frame.copy(), low_black, high_black)
-    img_binary1 = cv2.dilate(img_binary1, None, iterations = 1)
+    img_binary1 = cv2.erode(img_binary1, kernel, iterations = 2)
+    img_binary1 = cv2.dilate(img_binary1, kernel, iterations = 2)
 
    # Finding Center 
     img_contours1 = img_binary1.copy()
@@ -160,16 +167,17 @@ def detectObstacles(hsv_frame, frame, draw):
 
     return[[obstacle1_d,obstacle1_A],[obstacle2_d,obstacle2_A],[obstacle3_d,obstacle3_A]]
 
-def detectYellowGoal(hsv_frame,frame,cap):
+def detectYellowGoal(hsv_frame,frame,cap, kernel):
 
     yellowgoal_A = None
     yellowgoal_d = None
     
     
-    low_yellow = np.array([22,100,63])
-    high_yellow = np.array([30,255,255])
+    low_yellow = np.array([20,60,29])
+    high_yellow = np.array([31,255,255])
     yellow_mask = cv2.inRange(hsv_frame, low_yellow, high_yellow)
-    img_binary_yellow = cv2.dilate(yellow_mask, None, iterations = 1)
+    img_binary_yellow = cv2.erode(yellow_mask, kernel, iterations = 2)
+    img_binary_yellow = cv2.dilate(img_binary_yellow, kernel, iterations = 2)
 
     img_contours_yellow = img_binary_yellow.copy()
     contours_yellow = cv2.findContours(img_contours_yellow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) [-2]
@@ -186,6 +194,10 @@ def detectYellowGoal(hsv_frame,frame,cap):
             yellowgoal_A = (x_yellow / (320/108)) - 54
             yellowgoal_d = (28*255)/r_yellow
 
+            if r_yellow < r_min:
+                mid_yellow = None
+                
+
     if mid_yellow != None:
         cv2.putText(frame, "Yellow Goal", mid_yellow, cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
@@ -193,12 +205,13 @@ def detectYellowGoal(hsv_frame,frame,cap):
 
 
 
-def detectBlueGoal(hsv_frame, frame, cap):
+def detectBlueGoal(hsv_frame, frame, cap, kernel):
     
     low_blue = np.array([89, 116, 0])
-    high_blue = np.array([255,190,255])
+    high_blue = np.array([168,255,255])
     blue_mask = cv2.inRange(hsv_frame, low_blue, high_blue)
-    img_binary2 = cv2.dilate(blue_mask, None, iterations = 1)
+    blue_mask = cv2.erode(blue_mask, kernel, iterations = 2)
+    img_binary2 = cv2.dilate(blue_mask, kernel, iterations = 2)
 
     # Finding Center of Object
     img_contours2 = img_binary2.copy()
@@ -210,7 +223,7 @@ def detectBlueGoal(hsv_frame, frame, cap):
     bluegoal_A = None
     bluegoal_d = None
     r_bluegoal = 2
-    r_min = 0
+    r_min = 10
     if len(contours2) > 0:
         yes = max(contours2, key = cv2.contourArea)
         ((x_bluegoal,y_bluegoal), r_bluegoal) = cv2.minEnclosingCircle(yes)
