@@ -28,7 +28,9 @@ max_fd_vel = 0.2
 max_rvel = 0.5
 k = 1
 
+
 cap = vision.setupVision()
+cap.set(cv2.CAP_PROP_BUFFERSIZE, 6)
 
 #KickerSetup
 kickpin = 7
@@ -67,7 +69,7 @@ def calcRepel(obstacles,field):
     if obsMem[1]>0:
         obstacles.append([0.33,.43])
     if obstacles[0][0] != None:
-        print('calcing obs')
+        #print('calcing obs')
         for obstacle in obstacles:
             if obstacle[0]!= None:
                 if obstacle[0]<1.2:
@@ -131,7 +133,7 @@ def clean():
 
 def setdrive(dist, rps):
     JUST_DRIVE_SYSTEM.SetTargetVelocities(max_fd_vel*(1-k*abs(rps/max_rvel)),rps)
-    print('speed:'+str(max_fd_vel*(1-k*abs(rps/max_rvel)))+' rps:'+str(rps))
+    #print('speed:'+str(max_fd_vel*(1-k*abs(rps/max_rvel)))+' rps:'+str(rps))
 
 
 def BallInDribbler():
@@ -160,12 +162,13 @@ def main():#DriveSetup):
     frame = hsv_frame
     ballVals= vision.detectBall(hsv_frame,cap)
     obsVals= vision.detectObstacles(hsv_frame,frame,True)
+    vision.detectYellowGoal(hsv_frame,cap)
     vision.drawBall(ballVals,frame)
     field = calcfield(convertObsResult(obsVals),convertBallResult(ballVals))
     objectives = findmax(field)
           
     setdrive(objectives[1],indextorad(objectives[0]))
-    print('frame')
+    #print('frame')
     if BallInDribbler():
         JUST_DRIVE_SYSTEM.motorkick()
     vision.showCam(frame)

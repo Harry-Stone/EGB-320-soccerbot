@@ -36,8 +36,8 @@ def takeHsvFrame(cap):
 def detectBall(hsv_frame,cap):
     A = None
     d = None
-    high_orange = (17, 255, 255)
-    low_orange = (0, 50, 112)
+    high_orange = (16, 255, 255)
+    low_orange = (0, 79, 0)
     r_min = 4 
     _, frame = cap.read()
     img_binary = cv2.inRange(hsv_frame.copy(), low_orange, high_orange)
@@ -83,8 +83,8 @@ def detectObstacles(hsv_frame, frame, draw, kernel):
     A1 = None
     d1 = None
     x = None
-    high_black = np.array([255,255,55])
-    low_black = np.array([70,0,5])
+    high_black = np.array([255,255,63])
+    low_black = np.array([70,0,0])
 
     img_binary1 = cv2.inRange(hsv_frame.copy(), low_black, high_black)
     img_binary1 = cv2.erode(img_binary1, kernel, iterations = 2)
@@ -118,18 +118,10 @@ def detectObstacles(hsv_frame, frame, draw, kernel):
             obstacle3_box = cv2.boxPoints(obstacle3_area)
             obstacle3_box = np.int0(obstacle3_box)
             obstacle3_w = abs(obstacle3_box[2] - obstacle3_box[0])
-            obstacle3_h = abs(obstacle3_box[3] - obstacle3_box[1])
-            obstacle3_h, nothing = obstacle3_h
             obstacle3_x, obstacle3_y = abs(obstacle3_box[0])
             obstacle3_x2, obstacle3_y2 = obstacle3_w
-            obstacle3_x, obstacle3_y = abs(obstacle3_box[0])
-            obstacle3_x2, obstacle3_y2 = abs(obstacle3_box[1])
-            obstacle3_x3, obstacle3_y3 = abs(obstacle3_box[2])
-            obstacle3_x4, obstacle3_y4 = abs(obstacle3_box[3])
-            obstacle3_x2, obstacle3_y2 = obstacle3_w
-            
             if draw == True:
-                if obstacle3_x2 >=w_min and (obstacle3_y or obstacle3_y2 or obstacle3_y3 or obstacle3_y4) >= 180:
+                if obstacle3_x2 >=w_min:
                     drawobstacle3 = cv2.drawContours(frame, [obstacle3_box], 0, (0,255,0),2)
                     obstacle3_d = (15*300)/obstacle3_x2
                     obstacle3_A = (((obstacle3_x + (obstacle3_x2/2)) / (320/108)) - 54)
@@ -143,14 +135,10 @@ def detectObstacles(hsv_frame, frame, draw, kernel):
             obstacle2_box = cv2.boxPoints(obstacle2_area)
             obstacle2_box = np.int0(obstacle2_box)
             obstacle2_w = abs(obstacle2_box[2] - obstacle2_box[0])
-
             obstacle2_x, obstacle2_y = abs(obstacle2_box[0])
-            obstacle2_x2, obstacle2_y2 = abs(obstacle2_box[1])
-            obstacle2_x3, obstacle2_y3 = abs(obstacle2_box[2])
-            obstacle2_x4, obstacle2_y4 = abs(obstacle2_box[3])
             obstacle2_x2, obstacle2_y2 = obstacle2_w
             if draw ==True:
-                if obstacle2_x2 >=w_min and (obstacle2_y or obstacle2_y2 or obstacle2_y3 or obstacle2_y4) >= 180:
+                if obstacle2_x2 >=w_min:
                     drawobstacle2 = cv2.drawContours(frame, [obstacle2_box], 0, (0,255,0),2)
                     obstacle2_d = (15*300)/obstacle2_x2
                     obstacle2_A = (((obstacle2_x + (obstacle2_x2/2)) / (320/108)) - 54)
@@ -165,34 +153,19 @@ def detectObstacles(hsv_frame, frame, draw, kernel):
         box = cv2.boxPoints(area)
         box = np.int0(box)
         w = abs(box[2] - box[0])
-        #obstacle1_h = abs(box[2] - box[1])
-        #obstacle_n, obstacle_h = obstacle1_h
         xyes, yyes = abs(box[0])
-        xyes2, yyes2 = abs(box[1])
-        xyes3, yyes3 = abs(box[2])
-        xyes4, yyes4 = abs(box[3])
-##        print(yyes)
-##        print(yyes2)
-##        print(yyes3)
-##        print(yyes4)
-##        
         x,y = w
         if draw == True:
-            if x >= w_min and ((yyes or yyes2 or yyes3 or yyes4) >= 180):
+            if x >= w_min:
                draw = cv2.drawContours(frame, [box], 0, (0,255,0),2)
                #Focal Length = (width@10cm * 10cm)/actual width = 255
                obstacle1_d = (15*300)/x
                obstacle1_A = (((xyes + (x/2)) / (320/108)) - 54)
-               cv2.circle(frame, (xyes,yyes) , 7, (0,255,0))
-               #cv2.circle(frame, (xyes2,yyes2) , 7, (0,255,0))
-               cv2.circle(frame, (xyes3,yyes3) , 7, (0,255,0))
-               #cv2.circle(frame, (xyes4,yyes4) , 7, (0,255,0))
-               
                #cv2.putText(frame, "D: " + str(obstacle1_d), (4,50), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
                #cv2.putText(frame, "A: " + str(obstacle1_A), (4,35), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
                #cv2.putText(frame, "Obstacle", (4,20), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
-    return[[obstacle1_d,obstacle1_A] ,[obstacle2_d,obstacle2_A]] #,[obstacle3_d,obstacle3_A]]
+    return[[obstacle1_d,obstacle1_A],[obstacle2_d,obstacle2_A],[obstacle3_d,obstacle3_A]]
 
 def detectYellowGoal(hsv_frame,frame,cap, kernel):
 
@@ -200,18 +173,18 @@ def detectYellowGoal(hsv_frame,frame,cap, kernel):
     yellowgoal_d = None
     
     
-    low_yellow = np.array([20,135,29])
-    high_yellow = np.array([29,255,255])
+    low_yellow = np.array([20,60,29])
+    high_yellow = np.array([31,255,255])
     yellow_mask = cv2.inRange(hsv_frame, low_yellow, high_yellow)
     img_binary_yellow = cv2.erode(yellow_mask, kernel, iterations = 2)
     img_binary_yellow = cv2.dilate(img_binary_yellow, kernel, iterations = 2)
-#kernel carmen filter
+
     img_contours_yellow = img_binary_yellow.copy()
     contours_yellow = cv2.findContours(img_contours_yellow, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) [-2]
 
     mid_yellow = None 
     r_yellow = 0
-    r_min = 15
+    r_min = 10
     if len(contours_yellow) > 0:
         square_yellow = max(contours_yellow, key = cv2.contourArea)
         ((x_yellow,y_yellow), r_yellow) = cv2.minEnclosingCircle(square_yellow)
@@ -234,8 +207,8 @@ def detectYellowGoal(hsv_frame,frame,cap, kernel):
 
 def detectBlueGoal(hsv_frame, frame, cap, kernel):
     
-    low_blue = np.array([89, 116, 40])#89 116 0
-    high_blue = np.array([140,255,255])#255 255 255
+    low_blue = np.array([89, 116, 0])
+    high_blue = np.array([168,255,255])
     blue_mask = cv2.inRange(hsv_frame, low_blue, high_blue)
     blue_mask = cv2.erode(blue_mask, kernel, iterations = 2)
     img_binary2 = cv2.dilate(blue_mask, kernel, iterations = 2)

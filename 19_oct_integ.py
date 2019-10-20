@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 import time
 import JUST_DRIVE_SYSTEM
-import vision
+import vision_sunny20
 import math
 import matplotlib.pyplot as plt
 import threading
@@ -18,14 +18,14 @@ kernelSanders = np.ones((5,5), np.uint8) ##
 fovsize = 1 # 1 radian
 fovsamples = 60 #samples in FOV 
 field = range(1,fovsamples)
-grad = 1/30
+grad = 15/30
 obswid = (20+20)/100 #cm
 obsMem = [0,0] #number that decrements and is set to something when an obstacle is in the exremity
 obsMemFrames = 100 # number of frmaes untill an obstacle is forgotten
 scoreGoal = 'blue'
 lookingFor = 'ball'
 prevLook = 'ball'
-max_fd_vel = 0.2
+max_fd_vel = 0.2#0.2
 max_rvel = 0.5
 k = 0.8
 circleCountdownRunning = False
@@ -38,7 +38,7 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(16, GPIO.OUT)
 GPIO.setup(20, GPIO.OUT)
 GPIO.setup(21, GPIO.IN, pull_up_down=GPIO.PUD_DOWN) #goal switch
-cap = vision.setupVision()
+cap = vision_sunny20.setupVision()
 cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
 GPIO.setup(1, GPIO.IN) #set laser pin as input
@@ -185,7 +185,7 @@ def clean():
 
 def setdrive(dist, rps):
     if obsFlag:
-        JUST_DRIVE_SYSTEM.SetTargetVelocities(-.2,0)
+        JUST_DRIVE_SYSTEM.SetTargetVelocities(-.4,0)
         #print('speed:'+str(max_fd_vel*(1-k*abs(rps/max_rvel)))+' rps:'+str(rps))
         #print('backwards')
     else:
@@ -203,16 +203,16 @@ def main():
     global circleCountdownRunning
     global changeLookTimer
     
-    hsv_frame = vision.takeHsvFrame(cap)
+    hsv_frame = vision_sunny20.takeHsvFrame(cap)
     frame = hsv_frame
-    ballRB = vision.detectBall(hsv_frame,cap)
-    obstaclesRB = convertObsResult(vision.detectObstacles(hsv_frame,frame,True, kernelSanders))
-    vision.drawBall(ballRB,frame)
+    ballRB = vision_sunny20.detectBall(hsv_frame,cap)
+    obstaclesRB = convertObsResult(vision_sunny20.detectObstacles(hsv_frame,frame,True, kernelSanders))
+    vision_sunny20.drawBall(ballRB,frame)
 
     if lookingFor == 'yellow':
-        objectiveRB = convertGoalResult(vision.detectYellowGoal(hsv_frame,frame,cap, kernelSanders))
+        objectiveRB = convertGoalResult(vision_sunny20.detectYellowGoal(hsv_frame,frame,cap, kernelSanders))
     elif lookingFor == 'blue':
-        objectiveRB = convertGoalResult(vision.detectBlueGoal(hsv_frame,frame,cap, kernelSanders))
+        objectiveRB = convertGoalResult(vision_sunny20.detectBlueGoal(hsv_frame,frame,cap, kernelSanders))
     else:
         objectiveRB = convertBallResult(ballRB)
 
@@ -260,7 +260,7 @@ def main():
             lookingFor = 'ball'
 
     setdrive(decisions[1],indextorad(decisions[0]))
-    vision.showCam(frame)
+    vision_sunny20.showCam(frame)
     checkLedSwitch()
   
 try:

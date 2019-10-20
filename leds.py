@@ -26,11 +26,12 @@ GPIO.setmode(GPIO.BCM)
 
 GPIO.setup(16, GPIO.OUT)
 GPIO.setup(20, GPIO.OUT)
-GPIO.setup(21, GPIO.IN)
+GPIO.setup(21, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 
 while True:
     if GPIO.input(21):
+        
         ledTarg = ToggleLed(ledTarg)
         time.sleep(1)
 

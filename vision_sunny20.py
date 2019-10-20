@@ -112,30 +112,24 @@ def detectObstacles(hsv_frame, frame, draw, kernel):
         # Sort area by largest to smallest
         Contour_size = sorted(zip(obstacles, contours1), key = lambda x: x[0], reverse = True)
 
-        if len(Contour_size) > 2:
-            obstacle3 = Contour_size[2][1]
-            obstacle3_area = cv2.minAreaRect(obstacle3)
-            obstacle3_box = cv2.boxPoints(obstacle3_area)
-            obstacle3_box = np.int0(obstacle3_box)
-            obstacle3_w = abs(obstacle3_box[2] - obstacle3_box[0])
-            obstacle3_h = abs(obstacle3_box[3] - obstacle3_box[1])
-            obstacle3_h, nothing = obstacle3_h
-            obstacle3_x, obstacle3_y = abs(obstacle3_box[0])
-            obstacle3_x2, obstacle3_y2 = obstacle3_w
-            obstacle3_x, obstacle3_y = abs(obstacle3_box[0])
-            obstacle3_x2, obstacle3_y2 = abs(obstacle3_box[1])
-            obstacle3_x3, obstacle3_y3 = abs(obstacle3_box[2])
-            obstacle3_x4, obstacle3_y4 = abs(obstacle3_box[3])
-            obstacle3_x2, obstacle3_y2 = obstacle3_w
-            
-            if draw == True:
-                if obstacle3_x2 >=w_min and (obstacle3_y or obstacle3_y2 or obstacle3_y3 or obstacle3_y4) >= 180:
-                    drawobstacle3 = cv2.drawContours(frame, [obstacle3_box], 0, (0,255,0),2)
-                    obstacle3_d = (15*300)/obstacle3_x2
-                    obstacle3_A = (((obstacle3_x + (obstacle3_x2/2)) / (320/108)) - 54)
-                    #cv2.putText(frame, "D: " + str(obstacle3_d), (4,140), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-                    #cv2.putText(frame, "A: " + str(obstacle3_A), (4,125), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-                    #cv2.putText(frame, "Obstacle3", (4,110), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+##        if len(Contour_size) > 2:
+##            obstacle3 = Contour_size[2][1]
+##            obstacle3_area = cv2.minAreaRect(obstacle3)
+##            obstacle3_box = cv2.boxPoints(obstacle3_area)
+##            obstacle3_box = np.int0(obstacle3_box)
+##            obstacle3_w = abs(obstacle3_box[2] - obstacle3_box[0])
+##            obstacle3_h = abs(obstacle3_box[3] - obstacle3_box[1])
+##            obstacle3_h, nothing = obstacle3_h
+##            obstacle3_x, obstacle3_y = abs(obstacle3_box[0])
+##            obstacle3_x2, obstacle3_y2 = obstacle3_w
+##            if draw == True:
+##                if obstacle3_x2 >=w_min & obstacle3_h > 20:
+##                    drawobstacle3 = cv2.drawContours(frame, [obstacle3_box], 0, (0,255,0),2)
+##                    obstacle3_d = (15*300)/obstacle3_x2
+##                    obstacle3_A = (((obstacle3_x + (obstacle3_x2/2)) / (320/108)) - 54)
+##                    #cv2.putText(frame, "D: " + str(obstacle3_d), (4,140), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+##                    #cv2.putText(frame, "A: " + str(obstacle3_A), (4,125), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+##                    #cv2.putText(frame, "Obstacle3", (4,110), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
         if len(Contour_size) > 1:
             obstacle2 = Contour_size[1][1]
@@ -150,7 +144,7 @@ def detectObstacles(hsv_frame, frame, draw, kernel):
             obstacle2_x4, obstacle2_y4 = abs(obstacle2_box[3])
             obstacle2_x2, obstacle2_y2 = obstacle2_w
             if draw ==True:
-                if obstacle2_x2 >=w_min and (obstacle2_y or obstacle2_y2 or obstacle2_y3 or obstacle2_y4) >= 180:
+                if obstacle2_x2 >=w_min and (obstacle2_y or obstacle2_y2 or obstacle2_y3 or obstacle2_y4) >=189:
                     drawobstacle2 = cv2.drawContours(frame, [obstacle2_box], 0, (0,255,0),2)
                     obstacle2_d = (15*300)/obstacle2_x2
                     obstacle2_A = (((obstacle2_x + (obstacle2_x2/2)) / (320/108)) - 54)
@@ -192,7 +186,7 @@ def detectObstacles(hsv_frame, frame, draw, kernel):
                #cv2.putText(frame, "A: " + str(obstacle1_A), (4,35), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
                #cv2.putText(frame, "Obstacle", (4,20), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
-    return[[obstacle1_d,obstacle1_A] ,[obstacle2_d,obstacle2_A]] #,[obstacle3_d,obstacle3_A]]
+    return[[obstacle1_d,obstacle1_A]] #,[obstacle2_d,obstacle2_A],[obstacle3_d,obstacle3_A]]
 
 def detectYellowGoal(hsv_frame,frame,cap, kernel):
 

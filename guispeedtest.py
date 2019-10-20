@@ -20,10 +20,10 @@ GUI.grid_rowconfigure(2, weight = 1)
 
 
 # Enable Motors
-EN = 21
+EN = 23
 # Motor A
-in1 = 18
-in2 = 12
+in1 = 12
+in2 = 18
 # Motor B
 in3 = 13
 in4 = 19
@@ -37,11 +37,19 @@ GPIO.setup(in2, GPIO.OUT)
 GPIO.setup(in3, GPIO.OUT)
 GPIO.setup(in4, GPIO.OUT)
 GPIO.setup(EN, GPIO.OUT)
+GPIO.setup(17, GPIO.OUT)
+GPIO.setup(27, GPIO.OUT)
+
+GPIO.setup(22, GPIO.OUT)
 
 PWM0 = GPIO.PWM(in1,1000)
 PWM1 = GPIO.PWM(in2,1000)
 PWM2 = GPIO.PWM(in3,1000)
-PWM3 = GPIO.PWM(in4,1000) 
+PWM3 = GPIO.PWM(in4,1000)
+
+Drf = GPIO.PWM(17,1000)
+Drb = GPIO.PWM(27,1000) 
+
 
 def motorspeed0(PWM):
     PWM0.ChangeDutyCycle(PWM*0.8)
@@ -58,6 +66,14 @@ def motorspeed2(PWM):
 def motorspeed3(PWM):
     PWM3.ChangeDutyCycle(PWM*0.8)
     return PWM3
+
+def motorspeedDf(PWM):
+    Drf.ChangeDutyCycle(PWM*0.8)
+    return Drf
+
+def motorspeedDb(PWM):
+    Drb.ChangeDutyCycle(PWM*0.8)
+    return Drb
  
 W = 12.8310 #cm
 #forward_vel = 60 #cm
@@ -66,19 +82,31 @@ W = 12.8310 #cm
 # Setup same as test code
 def Enable_Motor():
     GPIO.output(EN, GPIO.HIGH)
+    GPIO.output(22, GPIO.HIGH)
     PWM0.start(0)
     PWM1.start(0)
     PWM2.start(0)
     PWM3.start(0)
+    
+    Drf.start(0)
+    Drb.start(0)
+    
     Text3 = Label(GUI,text='Motor Enabled', fg='green', bg = '#0080FF', padx = 0)
     Text3.grid(row=1,column=1)
 
 def Disable_Motor():
     GPIO.output(EN, GPIO.LOW)
+    
+    GPIO.output(22, GPIO.LOW)
+    
     PWM0.stop()
     PWM1.stop()
     PWM2.stop()
     PWM3.stop()
+    
+    Drf.stop()
+    Drb.stop()
+    
     Text3 = Label(GUI,text='Motor Disbaled', fg='red', bg = '#0080FF', padx = 0)
     Text3.grid(row=1,column=1)
 
@@ -89,9 +117,11 @@ def Top_Speed():
     motorspeed1(0)
     motorspeed2(90)
     motorspeed3(0)
-    sleep(10)
+    motorspeedDf(119)
+    sleep(3)
     motorspeed0(0)
     motorspeed2(0)
+    motorspeedDf(0)
 
 def Slow_Speed():
     Text2 = Label(GUI,text='      Slow Speed     ', bg = '#0080FF', fg='white', padx = 0)
